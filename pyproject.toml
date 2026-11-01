@@ -8,6 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "duckdb>=2.0.0",
+    "pandas>=3.1.0",
+    "streamlit>=1.66.1",
 ]
 
 [tool.poetry]
@@ -16,3 +19,9 @@ packages = [{include = "iris_species", from = "src"}]
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
