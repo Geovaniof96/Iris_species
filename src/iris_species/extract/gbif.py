@@ -19,10 +19,18 @@ G3. Tudo é baixado numa pasta temporária ``.download_gbif_*`` dentro de ``raw/
 
 G4. Falha de rede, resposta HTTP de erro, JSON inválido ou espécie sem correspondência
     exata viram :class:`ExtracaoError`.
+
+G5. Falhas temporárias (timeout, erro de conexão, HTTP 429 ou 5xx) são tentadas de novo
+    até ``TENTATIVAS`` vezes, com espera de 2 s, 4 s...; cada nova tentativa é avisada
+    em ``stderr``. Erros HTTP 4xx (exceto 429) falham na hora.
+    Por quê: a API da GBIF às vezes demora mais que o timeout numa página isolada; sem
+    nova tentativa, uma lentidão momentânea derrubava a extração inteira.
 """
 
 import json
+import logging
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
@@ -42,6 +50,10 @@ ESPECIES: Mapping[str, str] = MappingProxyType(
 LIMITE_POR_ESPECIE = 3000
 TAMANHO_PAGINA = 300
 TIMEOUT_SEGUNDOS = 30
+TENTATIVAS = 4
+ESPERA_INICIAL_SEGUNDOS = 2.0
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -62,9 +74,34 @@ def _baixar(url: str) -> bytes:
     return corpo
 
 
+def _temporaria(exc: Exception) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code == 429 or exc.code >= 500  # noqa: PLR2004 - códigos HTTP
+    return isinstance(exc, (urllib.error.URLError, TimeoutError, OSError))
+
+
+def _baixar_com_novas_tentativas(url: str) -> bytes:
+    for tentativa in range(1, TENTATIVAS + 1):
+        try:
+            return _baixar(url)
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if tentativa == TENTATIVAS or not _temporaria(exc):
+                raise
+            espera = ESPERA_INICIAL_SEGUNDOS * 2 ** (tentativa - 1)
+            logger.warning(
+                "GBIF: tentativa %s de %s falhou (%s); nova tentativa em %.0f s",
+                tentativa,
+                TENTATIVAS,
+                exc,
+                espera,
+            )
+            time.sleep(espera)
+    raise AssertionError("inalcançável")  # pragma: no cover
+
+
 def _obter_json(url: str) -> tuple[bytes, dict[str, Any]]:
     try:
-        corpo = _baixar(url)
+        corpo = _baixar_com_novas_tentativas(url)
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise ExtracaoError(f"falha ao acessar {url}: {exc}") from exc
     try:

@@ -13,6 +13,12 @@ from iris_species.extract.kaggle import ExtracaoError
 CODIGOS = {"Iris setosa": 1, "Iris versicolor": 2, "Iris virginica": 3}
 
 
+@pytest.fixture(autouse=True)
+def sem_espera(mocker: MockerFixture):  # type: ignore[no-untyped-def]
+    """As novas tentativas não esperam de verdade nos testes."""
+    return mocker.patch.object(gbif.time, "sleep")
+
+
 def _api_falsa(total_por_especie: int, match_type: str = "EXACT"):  # type: ignore[no-untyped-def]
     """Simula a API: species/match e occurrence/search paginado sobre `total_por_especie`."""
     chamadas: list[str] = []
@@ -133,3 +139,53 @@ def test_baixar_le_a_resposta_http(mocker: MockerFixture) -> None:
 
     assert gbif._baixar("https://api.gbif.org/v1/x") == b"{}"
     assert urlopen.call_args.kwargs["timeout"] == gbif.TIMEOUT_SEGUNDOS
+
+
+def _http_erro(codigo: int) -> urllib.error.HTTPError:
+    return urllib.error.HTTPError("https://api.gbif.org", codigo, "erro", {}, None)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("falha", [TimeoutError("lenta"), _http_erro(503), _http_erro(429)])
+def test_falha_temporaria_tenta_de_novo_e_avisa(
+    tmp_path: Path,
+    mocker: MockerFixture,
+    sem_espera: object,
+    falha: Exception,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    baixar, _ = _api_falsa(total_por_especie=1)
+    falhas = iter([falha, falha])
+
+    def instavel(url: str) -> bytes:
+        proxima = next(falhas, None)
+        if proxima is not None:
+            raise proxima
+        return baixar(url)
+
+    mocker.patch.object(gbif, "_baixar", side_effect=instavel)
+
+    resumo = baixar_gbif(tmp_path)
+
+    assert resumo.ocorrencias == 3
+    assert [c.args[0] for c in sem_espera.call_args_list] == [2.0, 4.0]  # type: ignore[attr-defined]
+    assert "tentativa 1 de 4" in caplog.text
+
+
+def test_falha_persistente_desiste_depois_das_tentativas(
+    tmp_path: Path, mocker: MockerFixture
+) -> None:
+    baixar = mocker.patch.object(gbif, "_baixar", side_effect=TimeoutError("lenta"))
+
+    with pytest.raises(ExtracaoError, match="lenta"):
+        baixar_gbif(tmp_path)
+
+    assert baixar.call_count == gbif.TENTATIVAS
+
+
+def test_erro_http_4xx_falha_sem_nova_tentativa(tmp_path: Path, mocker: MockerFixture) -> None:
+    baixar = mocker.patch.object(gbif, "_baixar", side_effect=_http_erro(404))
+
+    with pytest.raises(ExtracaoError):
+        baixar_gbif(tmp_path)
+
+    assert baixar.call_count == 1
