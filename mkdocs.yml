@@ -1,0 +1,18 @@
+site_name: iris-species
+theme:
+  name: material
+  language: pt-BR
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: false
+nav:
+  - Início: index.md
+  - Guia de uso: guia.md
+  - Arquitetura: arquitetura.md
+  - Referência da API: api.md

@@ -1,0 +1,45 @@
+# Ambiente virtual (Poetry com virtualenvs.in-project = true)
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Build / empacotamento (inclui requirements gerado por `poetry export`)
+build/
+dist/
+
+# Testes e cobertura
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Caches de ferramentas
+.mypy_cache/
+.ruff_cache/
+
+# Documentação gerada (mkdocs build)
+site/
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+
+# Dados baixados localmente (ex.: Kaggle)
+data/
+raw/*
+!raw/.gitkeep
+
+# Banco DuckDB gerado pelo pipeline
+*.duckdb
+*.duckdb.wal
+
+# Sistema operacional / IDE
+.DS_Store
+.idea/
+.vscode/
+
+.claude/
