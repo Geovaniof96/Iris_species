@@ -4,7 +4,7 @@ Regras (extras à spec original):
 
 T1. A saída na tela tem o mesmo formato da ingestão (I6): uma linha por tabela com a
     contagem vinda do banco e uma linha final com o total.
-T2. Se ``raw.flores`` não existir: mensagem em ``stderr`` mandando rodar a ingestão
+T2. Se faltar tabela na raw: mensagem em ``stderr`` mandando rodar a ingestão
     antes, e exit code 1. Se o contrato da refined falhar: o motivo vai para ``stderr``,
     exit code 1 e nada é gravado. A conexão é fechada num ``finally``.
 T3. Não baixa nada e não lê ``raw/``: só lê o banco.
@@ -31,11 +31,11 @@ def main() -> None:
     try:
         resultados = processar_camadas(con)
     except duckdb.CatalogException as exc:
-        logger.error("raw.flores não encontrada: %s", exc)
+        logger.error("tabela da raw não encontrada: %s", exc)
         logger.error("Rode antes: poetry run python -m iris_species.ingestao")
         sys.exit(1)
     except ValidacaoError as exc:
-        logger.error("raw.flores fora do contrato da refined: %s", exc)
+        logger.error("raw fora do contrato da refined: %s", exc)
         sys.exit(1)
     finally:
         con.close()

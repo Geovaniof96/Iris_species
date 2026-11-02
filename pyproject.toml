@@ -61,7 +61,7 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=src/iris_species --cov-report=term-missing --cov-fail-under=50"
+addopts = "--import-mode=importlib --cov=src/iris_species --cov-report=term-missing --cov-fail-under=50"
 
 [tool.coverage.run]
 source = ["src/iris_species"]
