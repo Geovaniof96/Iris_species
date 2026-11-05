@@ -16,9 +16,10 @@ poetry run python -m iris_species.extracao_gbif
 poetry run python -m iris_species.ingestao
 poetry run python -m iris_species.transformacao
 poetry run python -m iris_species.ui            # http://localhost:4213, Ctrl+C para encerrar
+poetry run streamlit run src/iris_species/dashboard/app.py   # dashboard em http://localhost:8501
 ```
 
-Ou use `make pipeline` e `make ui`.
+Ou use `make pipeline`, `make ui` e `make dashboard`.
 
 ## Testar
 

@@ -32,6 +32,10 @@ As extrações não abrem o banco, e a ingestão e a transformação não acessa
 | `utils/saida.py` | utf-8, logging na tela e formatação de números |
 | `extracao.py`, `extracao_gbif.py`, `ingestao.py`, `transformacao.py` | Entrypoints: só orquestram |
 | `ui.py` | Interface do DuckDB; não importa nada do pacote |
+| `dashboard/dados.py` | Leitura somente leitura das tabelas do dashboard |
+| `dashboard/kpis.py` | KPIs, filtros e agregações do dashboard (funções puras) |
+| `dashboard/graficos.py` | Figuras Plotly, com uma cor fixa por espécie (funções puras) |
+| `dashboard/app.py` | Página Streamlit: só orquestra |
 
 ## Camadas
 

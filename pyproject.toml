@@ -10,7 +10,9 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "duckdb (>=2.0.0,<3.0.0)",
     "kagglehub (>=1.0.3,<2.0.0)",
-    "pandas (>=3.1.0,<4.0.0)"
+    "pandas (>=3.1.0,<4.0.0)",
+    "streamlit (>=1.66.1,<2.0.0)",
+    "plotly (>=7.1.0,<8.0.0)"
 ]
 
 [build-system]
@@ -79,5 +81,5 @@ strict = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["kagglehub.*"]
+module = ["kagglehub.*", "plotly.*"]
 ignore_missing_imports = true

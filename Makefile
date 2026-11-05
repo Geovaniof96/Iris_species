@@ -1,5 +1,5 @@
 # Makefile — só chama `poetry run ...`
-.PHONY: install lint format typecheck test docs check extracao extracao_kaggle extracao_gbif ingestao transformacao pipeline ui
+.PHONY: install lint format typecheck test docs check extracao extracao_kaggle extracao_gbif ingestao transformacao pipeline ui dashboard
 
 install:
 	poetry install
@@ -41,3 +41,6 @@ pipeline: extracao ingestao transformacao
 
 ui:
 	poetry run python -m iris_species.ui
+
+dashboard:
+	poetry run streamlit run src/iris_species/dashboard/app.py

@@ -21,3 +21,9 @@
 ::: iris_species.transform.analytics
 
 ::: iris_species.utils.saida
+
+::: iris_species.dashboard.dados
+
+::: iris_species.dashboard.kpis
+
+::: iris_species.dashboard.graficos
